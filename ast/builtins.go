@@ -232,6 +232,9 @@ var DefaultBuiltins = [...]*Builtin{
 	GlobMatch,
 	GlobQuoteMeta,
 
+	// Geo
+	GeoFromIP,
+
 	// Units
 	UnitsParseBytes,
 
@@ -2022,6 +2025,21 @@ var GlobQuoteMeta = &Builtin{
 			types.S,
 		),
 		types.S,
+	),
+}
+
+/**
+ * Geo
+ */
+
+// GeoFromIP return the geolocation of the given domain or IP address.
+var GeoFromIP = &Builtin{
+	Name: "geo.from_ip",
+	Decl: types.NewFunction(
+		types.Args(
+			types.S,
+		),
+		types.A,
 	),
 }
 
