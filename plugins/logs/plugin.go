@@ -45,20 +45,21 @@ type Logger interface {
 // the struct. Any changes here MUST be reflected in the AST()
 // implementation below.
 type EventV1 struct {
-	Labels      map[string]string       `json:"labels"`
-	DecisionID  string                  `json:"decision_id"`
-	Revision    string                  `json:"revision,omitempty"` // Deprecated: Use Bundles instead
-	Bundles     map[string]BundleInfoV1 `json:"bundles,omitempty"`
-	Path        string                  `json:"path,omitempty"`
-	Query       string                  `json:"query,omitempty"`
-	Input       *interface{}            `json:"input,omitempty"`
-	Result      *interface{}            `json:"result,omitempty"`
-	Erased      []string                `json:"erased,omitempty"`
-	Masked      []string                `json:"masked,omitempty"`
-	Error       error                   `json:"error,omitempty"`
-	RequestedBy string                  `json:"requested_by"`
-	Timestamp   time.Time               `json:"timestamp"`
-	Metrics     map[string]interface{}  `json:"metrics,omitempty"`
+	Labels        map[string]string       `json:"labels"`
+	DecisionID    string                  `json:"decision_id"`
+	Revision      string                  `json:"revision,omitempty"` // Deprecated: Use Bundles instead
+	Bundles       map[string]BundleInfoV1 `json:"bundles,omitempty"`
+	Path          string                  `json:"path,omitempty"`
+	Query         string                  `json:"query,omitempty"`
+	Input         *interface{}            `json:"input,omitempty"`
+	Result        *interface{}            `json:"result,omitempty"`
+	Erased        []string                `json:"erased,omitempty"`
+	Masked        []string                `json:"masked,omitempty"`
+	Error         error                   `json:"error,omitempty"`
+	RequestedBy   string                  `json:"requested_by"`
+	Timestamp     time.Time               `json:"timestamp"`
+	Metrics       map[string]interface{}  `json:"metrics,omitempty"`
+	LogStatements []interface{}           `json:"log_statements,omitempty"`
 
 	inputAST ast.Value
 }
@@ -478,6 +479,10 @@ func (p *Plugin) Log(ctx context.Context, decision *server.Info) error {
 		RequestedBy: decision.RemoteAddr,
 		Timestamp:   decision.Timestamp,
 		inputAST:    decision.InputAST,
+	}
+
+	if decision.LogStatements != nil {
+		event.LogStatements = decision.LogStatements.All()
 	}
 
 	if decision.Metrics != nil {

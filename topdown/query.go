@@ -37,6 +37,7 @@ type Query struct {
 	input                  *ast.Term
 	external               *resolverTrie
 	tracers                []QueryTracer
+	loggers                []Logger
 	plugTraceVars          bool
 	unknowns               []*ast.Term
 	partialNamespace       string
@@ -133,6 +134,13 @@ func (q *Query) WithQueryTracer(tracer QueryTracer) *Query {
 	if conf.PlugLocalVars {
 		q.plugTraceVars = true
 	}
+
+	return q
+}
+
+// WithLogger adds a logger to use during evaluation.
+func (q *Query) WithLogger(logger Logger) *Query {
+	q.loggers = append(q.loggers, logger)
 
 	return q
 }
@@ -417,6 +425,7 @@ func (q *Query) Iter(ctx context.Context, iter func(QueryResult) error) error {
 		tracers:                q.tracers,
 		traceEnabled:           len(q.tracers) > 0,
 		plugTraceVars:          q.plugTraceVars,
+		loggers:                q.loggers,
 		instr:                  q.instr,
 		builtins:               q.builtins,
 		builtinCache:           builtins.Cache{},

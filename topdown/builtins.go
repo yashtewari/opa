@@ -44,8 +44,9 @@ type (
 		Tracers                []Tracer              // Deprecated: Use QueryTracers instead
 		QueryTracers           []QueryTracer         // tracer objects for trace() built-in function
 		TraceEnabled           bool                  // indicates whether tracing is enabled for the evaluation
-		QueryID                uint64                // identifies query being evaluated
-		ParentID               uint64                // identifies parent of query being evaluated
+		Loggers                []Logger
+		QueryID                uint64 // identifies query being evaluated
+		ParentID               uint64 // identifies parent of query being evaluated
 	}
 
 	// BuiltinFunc defines an interface for implementing built-in functions.

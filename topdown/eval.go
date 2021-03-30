@@ -61,6 +61,7 @@ type eval struct {
 	tracers                []QueryTracer
 	traceEnabled           bool
 	plugTraceVars          bool
+	loggers                []Logger
 	instr                  *Instrumentation
 	builtins               map[string]*Builtin
 	builtinCache           builtins.Cache
@@ -651,6 +652,7 @@ func (e *eval) evalCall(terms []*ast.Term, iter unifyIterator) error {
 		InterQueryBuiltinCache: e.interQueryBuiltinCache,
 		Location:               e.query[e.index].Location,
 		QueryTracers:           e.tracers,
+		Loggers:                e.loggers,
 		TraceEnabled:           e.traceEnabled,
 		QueryID:                e.queryID,
 		ParentID:               parentID,

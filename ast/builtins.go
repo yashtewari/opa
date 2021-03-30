@@ -222,6 +222,9 @@ var DefaultBuiltins = [...]*Builtin{
 	// Tracing
 	Trace,
 
+	// Logging
+	Log,
+
 	// CIDR
 	NetCIDROverlap,
 	NetCIDRIntersects,
@@ -1986,6 +1989,21 @@ var Trace = &Builtin{
 	Decl: types.NewFunction(
 		types.Args(
 			types.S,
+		),
+		types.B,
+	),
+}
+
+/**
+ * Log
+ */
+
+// Log adds a log statement to the Decision Log.
+var Log = &Builtin{
+	Name: "log",
+	Decl: types.NewFunction(
+		types.Args(
+			types.A,
 		),
 		types.B,
 	),

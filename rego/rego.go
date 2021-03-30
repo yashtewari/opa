@@ -100,6 +100,7 @@ type EvalContext struct {
 	instrumentation        *topdown.Instrumentation
 	partialNamespace       string
 	queryTracers           []topdown.QueryTracer
+	loggers                []topdown.Logger
 	compiledQuery          compiledQuery
 	unknowns               []string
 	disableInlining        []ast.Ref
@@ -165,6 +166,15 @@ func EvalQueryTracer(tracer topdown.QueryTracer) EvalOption {
 	return func(e *EvalContext) {
 		if tracer != nil {
 			e.queryTracers = append(e.queryTracers, tracer)
+		}
+	}
+}
+
+// EvalLogger configures a tracer for a Prepared Query's evaluation
+func EvalLogger(logger topdown.Logger) EvalOption {
+	return func(e *EvalContext) {
+		if logger != nil {
+			e.loggers = append(e.loggers, logger)
 		}
 	}
 }
@@ -515,6 +525,7 @@ type Rego struct {
 	queryTracers           []topdown.QueryTracer
 	tracebuf               *topdown.BufferTracer
 	trace                  bool
+	loggers                []topdown.Logger
 	instrumentation        *topdown.Instrumentation
 	instrument             bool
 	capture                map[*ast.Expr]ast.Var // map exprs to generated capture vars
@@ -965,6 +976,15 @@ func QueryTracer(t topdown.QueryTracer) func(r *Rego) {
 	}
 }
 
+// Logger returns an argument that adds a query tracer to r.
+func Logger(t topdown.Logger) func(r *Rego) {
+	return func(r *Rego) {
+		if t != nil {
+			r.loggers = append(r.loggers, t)
+		}
+	}
+}
+
 // Runtime returns an argument that sets the runtime data to provide to the
 // evaluation engine.
 func Runtime(term *ast.Term) func(r *Rego) {
@@ -1132,6 +1152,10 @@ func (r *Rego) Eval(ctx context.Context) (ResultSet, error) {
 
 	for _, qt := range r.queryTracers {
 		evalArgs = append(evalArgs, EvalQueryTracer(qt))
+	}
+
+	for _, l := range r.loggers {
+		evalArgs = append(evalArgs, EvalLogger(l))
 	}
 
 	for i := range r.resolvers {
@@ -1856,6 +1880,10 @@ func (r *Rego) eval(ctx context.Context, ectx *EvalContext) (ResultSet, error) {
 		q = q.WithQueryTracer(ectx.queryTracers[i])
 	}
 
+	for i := range ectx.loggers {
+		q = q.WithLogger(ectx.loggers[i])
+	}
+
 	if ectx.parsedInput != nil {
 		q = q.WithInput(ast.NewTerm(ectx.parsedInput))
 	}
@@ -2007,6 +2035,7 @@ func (r *Rego) partialResult(ctx context.Context, pCfg *PrepareConfig) (PartialR
 		txn:              r.txn,
 		partialNamespace: r.partialNamespace,
 		queryTracers:     r.queryTracers,
+		loggers:          r.loggers,
 		compiledQuery:    r.compiledQueries[partialResultQueryType],
 		instrumentation:  r.instrumentation,
 		indexing:         true,
@@ -2119,6 +2148,10 @@ func (r *Rego) partial(ctx context.Context, ectx *EvalContext) (*PartialQueries,
 
 	for i := range ectx.queryTracers {
 		q = q.WithQueryTracer(ectx.queryTracers[i])
+	}
+
+	for i := range ectx.loggers {
+		q = q.WithLogger(ectx.loggers[i])
 	}
 
 	if ectx.parsedInput != nil {
